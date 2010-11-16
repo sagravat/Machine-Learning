@@ -27,28 +27,6 @@ classdef mlp < handle
             
         end
         
-        function new_val_error = earlystopping(obj,inputs, targets, valid, validtargets, eta, niterations)
-           valid = [valid -ones(size(valid,1),1)];
-           
-           old_val_error1 = 100002;
-           old_val_error2 = 100001;
-           new_val_error  = 100000;
-           
-           count = 0;
-           
-           while old_val_error1 - new_val_error > 1e-3 || old_val_error2 - old_val_error1 > 1e-3
-              count = count + 1;
-              obj.mlptrain(inputs, targets, eta, niterations);
-              old_val_error2 = old_val_error1;
-              old_val_error1 = new_val_error;
-              validout = obj.mlpfwd(valid);
-              new_val_error = 0.5*sum(sum(validtargets - validout).^2);
-              
-              %fprintf('stopped: %d, %d, %d\n', new_val_error, old_val_error1, old_val_error2);
-        
-           end
-           
-        end
         
         function error = mlptrain(obj,inputs, targets, eta, niterations)
             inputs = [inputs -ones(obj.num_rows,1)];
@@ -59,9 +37,6 @@ classdef mlp < handle
              for n=1:niterations
                outputs = obj.forward(inputs);
                error = 0.5*sum(sum((targets-outputs).^2));
-               %if (mod(n,100)==0)
-               %    fprintf('iteration: %d, Error: %f\n', n, error);
-               %end
                deltao = (targets-outputs).*outputs.*(1.0-outputs);
 
                deltah = obj.hidden.*(1.0-obj.hidden).* (deltao*obj.weights2');
@@ -90,13 +65,7 @@ classdef mlp < handle
             obj.hidden = 1.0./(1.0+exp(-obj.beta.*obj.hidden));
             obj.hidden = [obj.hidden -ones(size(inputs,1), 1)];
             outputs = obj.hidden * obj.weights2;    
-            %outputs = 1.0./(1.0+exp(-obj.beta.*outputs));
-            
-
             outputs = softmax(outputs);
-
-            %normalisers = sum(exp(outputs),2)'.*ones(1,size(outputs,1));
-            %outputs = (exp(outputs)./repmat(normalisers,obj.num_outputs,1)');
 
         end
         
